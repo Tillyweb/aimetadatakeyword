@@ -46,17 +46,17 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่หลัก 1 (Category 1):</label>
                 <select id="categorySelect1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="1">1: Abstracts</option>
+                    <option value="1">1: Abstract</option>
                     <option value="2">2: Animals</option>
-                    <option value="3">3: Arts & Architecture</option>
+                    <option value="3">3: Arts/Architecture</option>
                     <option value="4">4: Backgrounds/Textures</option>
-                    <option value="5">5: Beauty & Fashion</option>
+                    <option value="5">5: Beauty/Fashion</option>
                     <option value="6">6: Business</option>
-                    <option value="7">7: City & Travel</option>
-                    <option value="8">8: Food & Drink</option>
-                    <option value="9">9: Health & Medical</option>
-                    <option value="10">10: Hobbies & Leisure</option>
-                    <option value="11">11: Industry & Science</option>
+                    <option value="7">7: City/Travel</option>
+                    <option value="8">8: Food and drink</option>
+                    <option value="9">9: Health/Medical</option>
+                    <option value="10">10: Hobbies/Leisure</option>
+                    <option value="11">11: Industrial</option>
                     <option value="12">12: Nature</option>
                     <option value="13">13: People</option>
                     <option value="14">14: Sports</option>
@@ -70,17 +70,17 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่เสริม 2 (Category 2):</label>
                 <select id="categorySelect2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">(ไม่เลือก)</option>
-                    <option value="1">1: Abstracts</option>
+                    <option value="1">1: Abstract</option>
                     <option value="2">2: Animals</option>
-                    <option value="3">3: Arts & Architecture</option>
+                    <option value="3">3: Arts/Architecture</option>
                     <option value="4">4: Backgrounds/Textures</option>
-                    <option value="5">5: Beauty & Fashion</option>
+                    <option value="5">5: Beauty/Fashion</option>
                     <option value="6">6: Business</option>
-                    <option value="7">7: City & Travel</option>
-                    <option value="8">8: Food & Drink</option>
-                    <option value="9">9: Health & Medical</option>
-                    <option value="10">10: Hobbies & Leisure</option>
-                    <option value="11">11: Industry & Science</option>
+                    <option value="7">7: City/Travel</option>
+                    <option value="8">8: Food and drink</option>
+                    <option value="9">9: Health/Medical</option>
+                    <option value="10">10: Hobbies/Leisure</option>
+                    <option value="11">11: Industrial</option>
                     <option value="12">12: Nature</option>
                     <option value="13">13: People</option>
                     <option value="14">14: Sports</option>
@@ -171,6 +171,27 @@
     // Store final results
     let results = [];
 
+    // Category mapping: Numerical codes (UI values) map to the exact category names required by Shutterstock.
+    const CATEGORY_MAP = {
+        '1': 'Abstract',
+        '2': 'Animals',
+        '3': 'Arts/Architecture',
+        '4': 'Backgrounds/Textures',
+        '5': 'Beauty/Fashion',
+        '6': 'Business',
+        '7': 'City/Travel',
+        '8': 'Food and drink', // Using 'Food and drink' for Shutterstock
+        '9': 'Health/Medical',
+        '10': 'Hobbies/Leisure',
+        '11': 'Industrial', // Standardized to Industrial
+        '12': 'Nature',
+        '13': 'People',
+        '14': 'Sports',
+        '15': 'Technology',
+        '16': 'Other', 
+        '': '' // For the 'ไม่เลือก' option
+    };
+
     // UI elements
     const fileCountDisplay = document.getElementById('fileCountDisplay');
     const analyzeButton = document.getElementById('analyzeButton');
@@ -178,11 +199,11 @@
     const statusMessage = document.getElementById('statusMessage');
     const processingList = document.getElementById('processingList');
     const platformSelect = document.getElementById('platformSelect');
-    const categorySelect1 = document.getElementById('categorySelect1'); // Updated ID
-    const categorySelect2 = document.getElementById('categorySelect2'); // New ID
+    const categorySelect1 = document.getElementById('categorySelect1'); 
+    const categorySelect2 = document.getElementById('categorySelect2'); 
     const usageTypeSelect = document.getElementById('usageTypeSelect');
-    const matureContentSelect = document.getElementById('matureContentSelect'); // New ID
-    const illustrationSelect = document.getElementById('illustrationSelect'); // New ID
+    const matureContentSelect = document.getElementById('matureContentSelect'); 
+    const illustrationSelect = document.getElementById('illustrationSelect'); 
 
     /**
      * Retrieves the current metadata configuration from the UI.
@@ -414,10 +435,10 @@
 
         // Define Headers based on Platform
         if (platform === 'adobe') {
-            // Adobe Stock required columns. 'illustration' is not needed here.
+            // Adobe Stock required columns.
             header = ['filename', 'title', 'keywords', 'category', 'usage', 'mature_content']; 
         } else if (platform === 'shutterstock') {
-            // Updated header to match user's file structure and common Shutterstock requirements
+            // Updated header to match user's sample precisely
             header = ['filename', 'description', 'keywords', 'categories', 'editorial', 'mature content', 'illustration'];
         } else {
             // Default fallback
@@ -438,13 +459,26 @@
                     item.fileName,
                     escapedTitle,
                     escapedKeywords,
-                    category1, // Only Category 1 is used by Adobe (category)
+                    category1, // Use numerical code (1-16)
                     usageType, // "Commercial" or "Editorial"
                     matureContentValue // "Yes" or "No"
                 ].join(',');
             } else if (platform === 'shutterstock') {
                 // Shutterstock-specific logic
-                const categoryString = (category2 && category2 !== '') ? `${category1},${category2}` : category1; // Combine two categories
+                
+                // 1. Get Category Names from the map
+                const catName1 = CATEGORY_MAP[category1] || '';
+                const catName2 = CATEGORY_MAP[category2] || '';
+                
+                let categoryNameString = catName1;
+                if (catName2) {
+                    categoryNameString += `,${catName2}`;
+                }
+
+                // Categories must be enclosed in quotes if they contain commas
+                const categoryCsvValue = `"${categoryNameString}"`;
+
+                // 2. Format Yes/No values (lower case)
                 const editorialValue = (usageType === 'Editorial') ? 'yes' : 'no'; // 'yes' or 'no'
                 const matureContentValue = (matureContent === 'Yes') ? 'yes' : 'no'; // 'yes' or 'no'
                 const illustrationValue = (illustration === 'Illustration') ? 'yes' : 'no'; // 'yes' or 'no'
@@ -453,7 +487,7 @@
                     item.fileName,
                     escapedTitle, // Use title content as description
                     escapedKeywords,
-                    `"${categoryString}"`, // Categories must be enclosed in quotes
+                    categoryCsvValue, // Use category names enclosed in quotes (e.g., "Nature,Transportation")
                     editorialValue, 
                     matureContentValue,
                     illustrationValue
