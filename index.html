@@ -28,6 +28,100 @@
         อัปโหลดรูปภาพสูงสุด 50 รูป แล้วให้ AI ช่วยสร้างชื่อและคำหลัก (Keywords) พร้อมดาวน์โหลดเป็นไฟล์ CSV
     </p>
 
+    <!-- Metadata Configuration Area -->
+    <div class="bg-gray-100 p-6 rounded-lg space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800 border-b pb-2">ตั้งค่าเมตาดาต้า (Metadata Configuration)</h2>
+        
+        <!-- Platform Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">เลือกแพลตฟอร์มปลายทาง:</label>
+            <select id="platformSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="adobe">Adobe Stock</option>
+                <option value="shutterstock">Shutterstock</option>
+            </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Category Selection 1 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่หลัก 1 (Category 1):</label>
+                <select id="categorySelect1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="1">1: Abstracts</option>
+                    <option value="2">2: Animals</option>
+                    <option value="3">3: Arts & Architecture</option>
+                    <option value="4">4: Backgrounds/Textures</option>
+                    <option value="5">5: Beauty & Fashion</option>
+                    <option value="6">6: Business</option>
+                    <option value="7">7: City & Travel</option>
+                    <option value="8">8: Food & Drink</option>
+                    <option value="9">9: Health & Medical</option>
+                    <option value="10">10: Hobbies & Leisure</option>
+                    <option value="11">11: Industry & Science</option>
+                    <option value="12">12: Nature</option>
+                    <option value="13">13: People</option>
+                    <option value="14">14: Sports</option>
+                    <option value="15">15: Technology</option>
+                    <option value="16">16: Other</option>
+                </select>
+            </div>
+            
+            <!-- Category Selection 2 -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่เสริม 2 (Category 2):</label>
+                <select id="categorySelect2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">(ไม่เลือก)</option>
+                    <option value="1">1: Abstracts</option>
+                    <option value="2">2: Animals</option>
+                    <option value="3">3: Arts & Architecture</option>
+                    <option value="4">4: Backgrounds/Textures</option>
+                    <option value="5">5: Beauty & Fashion</option>
+                    <option value="6">6: Business</option>
+                    <option value="7">7: City & Travel</option>
+                    <option value="8">8: Food & Drink</option>
+                    <option value="9">9: Health & Medical</option>
+                    <option value="10">10: Hobbies & Leisure</option>
+                    <option value="11">11: Industry & Science</option>
+                    <option value="12">12: Nature</option>
+                    <option value="13">13: People</option>
+                    <option value="14">14: Sports</option>
+                    <option value="15">15: Technology</option>
+                    <option value="16">16: Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Other Required Metadata -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Usage Type Selection (Editorial/Commercial) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทการใช้งาน (Usage):</label>
+                <select id="usageTypeSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="Commercial">เชิงพาณิชย์ (Commercial)</option>
+                    <option value="Editorial">บรรณาธิการ (Editorial)</option>
+                </select>
+            </div>
+            
+            <!-- Mature Content Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">เนื้อหาสำหรับผู้ใหญ่ (Mature):</label>
+                <select id="matureContentSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <!-- Illustration Type Selection (Affects Shutterstock 'illustration' column) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทภาพ:</label>
+                <select id="illustrationSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="Photo">ภาพถ่าย (Photo)</option>
+                    <option value="Illustration">ภาพวาด/เวกเตอร์ (Illustration)</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">ตั้งค่าคอลัมน์ 'illustration' ของ Shutterstock</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Upload Area -->
     <div class="border-2 border-dashed border-indigo-300 rounded-lg p-6 hover:border-indigo-500 transition duration-300">
         <label for="imageUpload" class="block text-lg font-medium text-gray-700 mb-2 cursor-pointer">
@@ -69,8 +163,7 @@
 
 <script>
     // Global variables required for the environment
-    // IMPORTANT: If you encounter a 401 "Unauthorized" error, please insert your Gemini API Key here:
-    const apiKey = "AIzaSyAiWIAwYx-Y991YG5KsT1J257w7G2L4OpU"; // <--- INSERT YOUR API KEY HERE IF YOU GET A 401 ERROR
+    const apiKey = "AIzaSyAiWIAwYx-Y991YG5KsT1J257w7G2L4OpU"; // API Key provided by the user
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     
     // Store selected files
@@ -84,6 +177,27 @@
     const downloadButton = document.getElementById('downloadButton');
     const statusMessage = document.getElementById('statusMessage');
     const processingList = document.getElementById('processingList');
+    const platformSelect = document.getElementById('platformSelect');
+    const categorySelect1 = document.getElementById('categorySelect1'); // Updated ID
+    const categorySelect2 = document.getElementById('categorySelect2'); // New ID
+    const usageTypeSelect = document.getElementById('usageTypeSelect');
+    const matureContentSelect = document.getElementById('matureContentSelect'); // New ID
+    const illustrationSelect = document.getElementById('illustrationSelect'); // New ID
+
+    /**
+     * Retrieves the current metadata configuration from the UI.
+     * @returns {{platform: string, category1: string, category2: string, usageType: string, matureContent: string, illustration: string}}
+     */
+    function getMetadataConfig() {
+        return {
+            platform: platformSelect.value,
+            category1: categorySelect1.value,
+            category2: categorySelect2.value,
+            usageType: usageTypeSelect.value, 
+            matureContent: matureContentSelect.value,
+            illustration: illustrationSelect.value 
+        };
+    }
 
     /**
      * Handles file selection and updates the UI.
@@ -135,7 +249,6 @@
      * @returns {Promise<{title: string, keywords: string[]}>}
      */
     async function analyzeImageWithAI(imageData, fileName) {
-        // *** แก้ไข: เปลี่ยนจาก 50 เป็น 45 คำ ***
         const systemPrompt = "You are an expert stock photo keyword generator. Analyze the uploaded image meticulously. Generate a highly commercial, descriptive English title (up to 10 words) and a list of 45 relevant, diverse, and commercially viable keywords. Focus on technical, conceptual, and aesthetic aspects suitable for platforms like Adobe Stock or Shutterstock.";
         
         const payload = {
@@ -157,7 +270,6 @@
                         "keywords": {
                             "type": "ARRAY",
                             "items": { "type": "STRING" },
-                            // *** แก้ไข: เปลี่ยนจาก 50 เป็น 45 คำ ***
                             "description": "A list of at least 45 commercially relevant keywords."
                         }
                     },
@@ -190,7 +302,7 @@
                 return parsedJson;
 
             } catch (error) {
-                console.error(`Error processing ${file.name}:`, error);
+                console.error(`Attempt ${attempt + 1} failed for ${fileName}:`, error);
                 if (attempt < maxRetries - 1) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // Exponential backoff
                     await new Promise(resolve => setTimeout(resolve, delay));
@@ -211,6 +323,8 @@
             return;
         }
 
+        const config = getMetadataConfig();
+
         analyzeButton.disabled = true;
         downloadButton.disabled = true;
         processingList.innerHTML = '';
@@ -218,7 +332,7 @@
         let completedCount = 0;
         const totalFiles = selectedFiles.length;
 
-        statusMessage.textContent = `กำลังเริ่มวิเคราะห์ ${totalFiles} รูป...`;
+        statusMessage.textContent = `กำลังเริ่มวิเคราะห์ ${totalFiles} รูปสำหรับแพลตฟอร์ม ${config.platform === 'adobe' ? 'Adobe Stock' : 'Shutterstock'}...`;
         statusMessage.className = 'p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm';
 
         // Create UI elements for tracking progress
@@ -244,10 +358,12 @@
                 const imageData = await fileToBase64(file);
                 const aiResult = await analyzeImageWithAI(imageData, file.name);
 
+                // Store AI results along with selected config
                 results.push({
                     fileName: file.name,
                     title: aiResult.title || '',
-                    keywords: Array.isArray(aiResult.keywords) ? aiResult.keywords : [aiResult.keywords] // Handle case where AI gives a string instead of array
+                    keywords: Array.isArray(aiResult.keywords) ? aiResult.keywords : [aiResult.keywords],
+                    config: config // Store the selected configuration for CSV generation
                 });
 
                 completedCount++;
@@ -268,7 +384,7 @@
         analyzeButton.disabled = false;
         if (results.length > 0) {
             downloadButton.disabled = false;
-            statusMessage.textContent = `การวิเคราะห์เสร็จสมบูรณ์! พร้อมให้ดาวน์โหลด CSV จำนวน ${results.length} รายการ`;
+            statusMessage.textContent = `การวิเคราะห์เสร็จสมบูรณ์! พร้อมให้ดาวน์โหลด CSV จำนวน ${results.length} รายการสำหรับ ${config.platform === 'adobe' ? 'Adobe Stock' : 'Shutterstock'}`;
             statusMessage.className = 'p-3 bg-green-100 text-green-800 rounded-lg text-sm';
         } else {
              statusMessage.textContent = `เกิดข้อผิดพลาดในการวิเคราะห์ทั้งหมด โปรดตรวจสอบคอนโซล`;
@@ -277,21 +393,73 @@
     }
 
     /**
-     * Converts the results array to a CSV string.
+     * Converts the results array to a CSV string based on the selected platform.
      * @param {Array<Object>} data 
      * @returns {string}
      */
     function convertToCSV(data) {
         if (data.length === 0) return '';
         
-        const header = ['Filename', 'Title', 'Keywords'];
-        const rows = data.map(item => {
-            // Escape double quotes by doubling them, then enclose the whole field in quotes
-            const escapedTitle = `"${(item.title || '').replace(/"/g, '""')}"`;
-            // Join keywords with a comma and ensure the entire string is enclosed in quotes
-            const keywordString = `"${(item.keywords || []).join(', ').replace(/"/g, '""')}"`;
+        // Configuration from the first result (assuming all files use the same config)
+        const config = data[0].config;
+        const platform = config.platform;
+        const category1 = config.category1;
+        const category2 = config.category2;
+        const usageType = config.usageType;
+        const matureContent = config.matureContent;
+        const illustration = config.illustration;
 
-            return [item.fileName, escapedTitle, keywordString].join(',');
+        let header;
+        let rows = [];
+
+        // Define Headers based on Platform
+        if (platform === 'adobe') {
+            // Adobe Stock required columns. 'illustration' is not needed here.
+            header = ['filename', 'title', 'keywords', 'category', 'usage', 'mature_content']; 
+        } else if (platform === 'shutterstock') {
+            // Updated header to match user's file structure and common Shutterstock requirements
+            header = ['filename', 'description', 'keywords', 'categories', 'editorial', 'mature content', 'illustration'];
+        } else {
+            // Default fallback
+             header = ['Filename', 'Title', 'Keywords'];
+        }
+        
+        // Generate Rows
+        rows = data.map(item => {
+            // Common values
+            const escapedKeywords = `"${(item.keywords || []).join(', ').replace(/"/g, '""')}"`;
+            const escapedTitle = `"${(item.title || '').replace(/"/g, '""')}"`;
+            
+            if (platform === 'adobe') {
+                // Adobe Stock-specific logic
+                const matureContentValue = (matureContent === 'Yes') ? 'Yes' : 'No'; 
+                
+                return [
+                    item.fileName,
+                    escapedTitle,
+                    escapedKeywords,
+                    category1, // Only Category 1 is used by Adobe (category)
+                    usageType, // "Commercial" or "Editorial"
+                    matureContentValue // "Yes" or "No"
+                ].join(',');
+            } else if (platform === 'shutterstock') {
+                // Shutterstock-specific logic
+                const categoryString = (category2 && category2 !== '') ? `${category1},${category2}` : category1; // Combine two categories
+                const editorialValue = (usageType === 'Editorial') ? 'yes' : 'no'; // 'yes' or 'no'
+                const matureContentValue = (matureContent === 'Yes') ? 'yes' : 'no'; // 'yes' or 'no'
+                const illustrationValue = (illustration === 'Illustration') ? 'yes' : 'no'; // 'yes' or 'no'
+                
+                return [
+                    item.fileName,
+                    escapedTitle, // Use title content as description
+                    escapedKeywords,
+                    `"${categoryString}"`, // Categories must be enclosed in quotes
+                    editorialValue, 
+                    matureContentValue,
+                    illustrationValue
+                ].join(',');
+            }
+            return [item.fileName, escapedTitle, escapedKeywords].join(',');
         });
 
         return header.join(',') + '\n' + rows.join('\n');
@@ -302,18 +470,20 @@
      */
     function downloadCSV() {
         if (results.length === 0) {
-            // ไม่ใช้ alert() ตามกฎ แต่ใช้ console.log และ return แทน
             console.error('ไม่มีผลลัพธ์ให้ดาวน์โหลด กรุณาเริ่มการวิเคราะห์ก่อน');
             return;
         }
 
         const csvString = convertToCSV(results);
+        const config = getMetadataConfig();
+        const platformName = config.platform === 'adobe' ? 'adobe_stock' : 'shutterstock';
+        
         const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', 'stock_photo_metadata.csv');
+        link.setAttribute('download', `${platformName}_metadata.csv`);
         
         // Append to body temporarily and click
         document.body.appendChild(link);
