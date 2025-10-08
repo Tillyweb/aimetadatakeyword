@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องมือสร้าง Keyword สำหรับ Stock Photo โดย AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="max-w-4xl w-full bg-white shadow-xl rounded-xl p-8 space-y-6 mt-10">
+    <h1 class="text-3xl font-bold text-gray-800 text-center">
+        เครื่องมือสร้าง Keyword สำหรับ Stock Photo
+    </h1>
+    <p class="text-center text-gray-600">
+        อัปโหลดรูปภาพสูงสุด 50 รูป แล้วให้ AI ช่วยสร้างชื่อและคำหลัก (Keywords) พร้อมดาวน์โหลดเป็นไฟล์ CSV
+    </p>
+
+    <!-- Upload Area -->
+    <div class="border-2 border-dashed border-indigo-300 rounded-lg p-6 hover:border-indigo-500 transition duration-300">
+        <label for="imageUpload" class="block text-lg font-medium text-gray-700 mb-2 cursor-pointer">
+            1. เลือกรูปภาพ (สูงสุด 50 ไฟล์)
+        </label>
+        <input type="file" id="imageUpload" accept="image/*" multiple max="50" class="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-full file:border-0
+            file:text-sm file:font-semibold
+            file:bg-indigo-50 file:text-indigo-700
+            hover:file:bg-indigo-100"
+            onchange="handleFiles(this.files)">
+        <p id="fileCountDisplay" class="text-sm text-gray-500 mt-2">ยังไม่ได้เลือกไฟล์</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+        <button id="analyzeButton" onclick="startAnalysis()" disabled
+            class="px-6 py-3 bg-indigo-500 text-white font-semibold rounded-full shadow-md hover:bg-indigo-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            2. เริ่มวิเคราะห์ด้วย AI
+        </button>
+        <button id="downloadButton" onclick="downloadCSV()" disabled
+            class="px-6 py-3 bg-green-500 text-white font-semibold rounded-full shadow-md hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            3. ดาวน์โหลด CSV (0 รูป)
+        </button>
+    </div>
+
+    <!-- Status & Results -->
+    <div class="mt-8 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800">สถานะการประมวลผล</h2>
+        <div id="statusMessage" class="p-3 bg-blue-100 text-blue-800 rounded-lg text-sm">
+            รอการอัปโหลดรูปภาพและเริ่มต้นการวิเคราะห์...
+        </div>
+        <div id="processingList" class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <!-- Processing items will appear here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables required for the environment
+    const apiKey = "";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    
+    // Store selected files
+    let selectedFiles = [];
+    // Store final results
+    let results = [];
+
+    // UI elements
+    const fileCountDisplay = document.getElementById('fileCountDisplay');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const downloadButton = document.getElementById('downloadButton');
+    const statusMessage = document.getElementById('statusMessage');
+    const processingList = document.getElementById('processingList');
+
+    /**
+     * Handles file selection and updates the UI.
+     * @param {FileList} files 
+     */
+    function handleFiles(files) {
+        // Limit to 50 files
+        selectedFiles = Array.from(files).slice(0, 50);
+
+        fileCountDisplay.textContent = `${selectedFiles.length} ไฟล์ถูกเลือกแล้ว (สูงสุด 50)`;
+
+        if (selectedFiles.length > 0) {
+            analyzeButton.disabled = false;
+            analyzeButton.textContent = `2. เริ่มวิเคราะห์ ${selectedFiles.length} รูปด้วย AI`;
+            downloadButton.disabled = true;
+            downloadButton.textContent = `3. ดาวน์โหลด CSV (0 รูป)`;
+        } else {
+            analyzeButton.disabled = true;
+            analyzeButton.textContent = `2. เริ่มวิเคราะห์ด้วย AI`;
+        }
+
+        processingList.innerHTML = '';
+        statusMessage.className = 'p-3 bg-blue-100 text-blue-800 rounded-lg text-sm';
+        statusMessage.textContent = 'พร้อมที่จะเริ่มวิเคราะห์แล้ว โปรดกด "เริ่มวิเคราะห์ด้วย AI"';
+        results = [];
+    }
+
+    /**
+     * Converts a File object to a Base64 string.
+     * @param {File} file 
+     * @returns {Promise<{data: string, mimeType: string}>}
+     */
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64String = reader.result.split(',')[1];
+                resolve({ data: base64String, mimeType: file.type });
+            };
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    /**
+     * Calls the Gemini API to analyze the image and generate metadata.
+     * @param {{data: string, mimeType: string}} imageData 
+     * @param {string} fileName 
+     * @returns {Promise<{title: string, keywords: string[]}>}
+     */
+    async function analyzeImageWithAI(imageData, fileName) {
+        // *** แก้ไข: เปลี่ยนจาก 50 เป็น 45 คำ ***
+        const systemPrompt = "You are an expert stock photo keyword generator. Analyze the uploaded image meticulously. Generate a highly commercial, descriptive English title (up to 10 words) and a list of 45 relevant, diverse, and commercially viable keywords. Focus on technical, conceptual, and aesthetic aspects suitable for platforms like Adobe Stock or Shutterstock.";
+        
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: "Analyze this image and provide the required JSON output for stock photography metadata." },
+                    { inlineData: imageData }
+                ]
+            }],
+            systemInstruction: {
+                parts: [{ text: systemPrompt }]
+            },
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        "title": { "type": "STRING", "description": "A concise, descriptive, and commercial title (under 10 words)." },
+                        "keywords": {
+                            "type": "ARRAY",
+                            "items": { "type": "STRING" },
+                            // *** แก้ไข: เปลี่ยนจาก 50 เป็น 45 คำ ***
+                            "description": "A list of at least 45 commercially relevant keywords."
+                        }
+                    },
+                    required: ["title", "keywords"]
+                }
+            }
+        };
+
+        const maxRetries = 5;
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!jsonText) {
+                     throw new Error('API response was empty or malformed.');
+                }
+                
+                const parsedJson = JSON.parse(jsonText);
+                return parsedJson;
+
+            } catch (error) {
+                console.error(`Attempt ${attempt + 1} failed for ${fileName}:`, error);
+                if (attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    throw new Error(`Failed to process image after ${maxRetries} attempts: ${fileName}`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Main function to start the batch analysis process.
+     */
+    async function startAnalysis() {
+        if (selectedFiles.length === 0) {
+            statusMessage.textContent = 'กรุณาเลือกรูปภาพก่อนเริ่มการวิเคราะห์';
+            statusMessage.className = 'p-3 bg-red-100 text-red-800 rounded-lg text-sm';
+            return;
+        }
+
+        analyzeButton.disabled = true;
+        downloadButton.disabled = true;
+        processingList.innerHTML = '';
+        results = [];
+        let completedCount = 0;
+        const totalFiles = selectedFiles.length;
+
+        statusMessage.textContent = `กำลังเริ่มวิเคราะห์ ${totalFiles} รูป...`;
+        statusMessage.className = 'p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm';
+
+        // Create UI elements for tracking progress
+        const fileElements = selectedFiles.map(file => {
+            const div = document.createElement('div');
+            div.id = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+            div.className = 'flex justify-between items-center py-2 border-b last:border-b-0';
+            div.innerHTML = `
+                <span class="text-gray-700 truncate w-2/3">${file.name}</span>
+                <span id="status-${div.id}" class="text-sm px-2 py-1 bg-gray-200 rounded-full">รอ</span>
+            `;
+            processingList.appendChild(div);
+            return { file, elementId: div.id };
+        });
+
+        // Process files sequentially to respect rate limits and manage state easily
+        for (const { file, elementId } of fileElements) {
+            const statusSpan = document.getElementById(`status-${elementId}`);
+            statusSpan.textContent = 'กำลังประมวลผล...';
+            statusSpan.className = 'text-sm px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full';
+
+            try {
+                const imageData = await fileToBase64(file);
+                const aiResult = await analyzeImageWithAI(imageData, file.name);
+
+                results.push({
+                    fileName: file.name,
+                    title: aiResult.title || '',
+                    keywords: Array.isArray(aiResult.keywords) ? aiResult.keywords : [aiResult.keywords] // Handle case where AI gives a string instead of array
+                });
+
+                completedCount++;
+                statusSpan.textContent = 'สำเร็จ';
+                statusSpan.className = 'text-sm px-2 py-1 bg-green-100 text-green-700 rounded-full';
+                downloadButton.textContent = `3. ดาวน์โหลด CSV (${completedCount} รูป)`;
+
+            } catch (error) {
+                console.error(`Error processing ${file.name}:`, error);
+                statusSpan.textContent = 'ล้มเหลว (ดู Console)';
+                statusSpan.className = 'text-sm px-2 py-1 bg-red-100 text-red-700 rounded-full';
+            }
+            
+            statusMessage.textContent = `วิเคราะห์เสร็จสิ้นไปแล้ว ${completedCount} / ${totalFiles} รูป...`;
+        }
+
+        // Finalize
+        analyzeButton.disabled = false;
+        if (results.length > 0) {
+            downloadButton.disabled = false;
+            statusMessage.textContent = `การวิเคราะห์เสร็จสมบูรณ์! พร้อมให้ดาวน์โหลด CSV จำนวน ${results.length} รายการ`;
+            statusMessage.className = 'p-3 bg-green-100 text-green-800 rounded-lg text-sm';
+        } else {
+             statusMessage.textContent = `เกิดข้อผิดพลาดในการวิเคราะห์ทั้งหมด โปรดตรวจสอบคอนโซล`;
+            statusMessage.className = 'p-3 bg-red-100 text-red-800 rounded-lg text-sm';
+        }
+    }
+
+    /**
+     * Converts the results array to a CSV string.
+     * @param {Array<Object>} data 
+     * @returns {string}
+     */
+    function convertToCSV(data) {
+        if (data.length === 0) return '';
+        
+        const header = ['Filename', 'Title', 'Keywords'];
+        const rows = data.map(item => {
+            // Escape double quotes by doubling them, then enclose the whole field in quotes
+            const escapedTitle = `"${(item.title || '').replace(/"/g, '""')}"`;
+            // Join keywords with a comma and ensure the entire string is enclosed in quotes
+            const keywordString = `"${(item.keywords || []).join(', ').replace(/"/g, '""')}"`;
+
+            return [item.fileName, escapedTitle, keywordString].join(',');
+        });
+
+        return header.join(',') + '\n' + rows.join('\n');
+    }
+
+    /**
+     * Downloads the generated CSV file.
+     */
+    function downloadCSV() {
+        if (results.length === 0) {
+            // ไม่ใช้ alert() ตามกฎ แต่ใช้ console.log และ return แทน
+            console.error('ไม่มีผลลัพธ์ให้ดาวน์โหลด กรุณาเริ่มการวิเคราะห์ก่อน');
+            return;
+        }
+
+        const csvString = convertToCSV(results);
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'stock_photo_metadata.csv');
+        
+        // Append to body temporarily and click
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
