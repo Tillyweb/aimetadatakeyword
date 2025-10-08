@@ -69,7 +69,8 @@
 
 <script>
     // Global variables required for the environment
-    const apiKey = "";
+    // IMPORTANT: If you encounter a 401 "Unauthorized" error, please insert your Gemini API Key here:
+    const apiKey = "AIzaSyAiWIAwYx-Y991YG5KsT1J257w7G2L4OpU"; // <--- INSERT YOUR API KEY HERE IF YOU GET A 401 ERROR
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     
     // Store selected files
@@ -189,7 +190,7 @@
                 return parsedJson;
 
             } catch (error) {
-                console.error(`Attempt ${attempt + 1} failed for ${fileName}:`, error);
+                console.error(`Error processing ${file.name}:`, error);
                 if (attempt < maxRetries - 1) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // Exponential backoff
                     await new Promise(resolve => setTimeout(resolve, delay));
